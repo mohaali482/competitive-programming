@@ -11,31 +11,25 @@ class Solution:
         return True
 
     def getNeighbors(self, grid: List[List[int]], point: Tuple[int]):
-        neighbors = []
         for x, y in self.movement:
             newPoint = (point[0] + x, point[1] + y)
             if self.isBound(grid, newPoint) and 1 == grid[newPoint[0]][newPoint[1]]:
-                neighbors.append(newPoint)
+                yield newPoint
 
-        return neighbors
-
-    def dfs(self, grid: List[List[int]], point: Tuple[int], area: List[int]):
-        if point in self.visited:
-            return
-
-        self.visited.add(point)
-        area[0] += 1
+    def dfs(self, grid: List[List[int]], point: Tuple[int]):
+        if grid[point[0]][point[1]] == 0:
+            return 0
+        grid[point[0]][point[1]] = 0
+        ans = 1
         for neighbor in self.getNeighbors(grid, point):
-            self.dfs(grid, neighbor, area)
+            ans += self.dfs(grid, neighbor)
+        return ans
 
     def maxAreaOfIsland(self, grid: List[List[int]]) -> int:
         ans = 0
-        self.visited = set()
         for i in range(len(grid)):
             for j in range(len(grid[0])):
-                if grid[i][j] == 1 and (i, j) not in self.visited:
-                    area = [0]
-                    self.dfs(grid, (i, j), area)
-                    ans = max(ans, area[0])
+                if grid[i][j] == 1:
+                    ans = max(ans, self.dfs(grid, (i, j)))
 
         return ans
