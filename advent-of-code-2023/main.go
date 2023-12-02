@@ -19,7 +19,7 @@ func main() {
 	ans := 0
 	var num int
 	for scanner.Scan() {
-		num, _ = strconv.Atoi(trebuchet.Solution(scanner.Text()))
+		num, _ = strconv.Atoi(trebuchet.Solution2(scanner.Text()))
 		ans += num
 	}
 
