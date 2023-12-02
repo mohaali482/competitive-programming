@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/mohaali482/competitive-programming/advent_of_code_2023/trebuchet"
 )
 
 func main() {
-	trebuchet()
+	trebuchet_solution()
 }
 
-func trebuchet() {
+func trebuchet_solution() {
 	file, err := os.Open("trebuchet/input.txt")
 	if err != nil {
 		panic(err)
