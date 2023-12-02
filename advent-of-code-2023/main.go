@@ -12,7 +12,8 @@ import (
 
 func main() {
 	// trebuchet_solution()
-	cube_conundrum()
+	// cube_conundrum()
+	cube_conundrum2()
 }
 
 func _trebuchet_solution() {
@@ -43,6 +44,23 @@ func cube_conundrum() {
 	var num int
 	for scanner.Scan() {
 		num = cubeconundrum.Solution(scanner.Text())
+		ans += num
+	}
+
+	fmt.Println(ans)
+}
+
+func cube_conundrum2() {
+	file, err := os.Open("cube_conundrum/input.txt")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	ans := 0
+	var num int
+	for scanner.Scan() {
+		num = cubeconundrum.Solution2(scanner.Text())
 		ans += num
 	}
 

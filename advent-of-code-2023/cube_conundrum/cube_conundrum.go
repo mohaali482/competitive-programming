@@ -44,3 +44,26 @@ func Solution(line string) int {
 
 	return game
 }
+
+func Solution2(line string) int {
+	splitted_line := strings.Split(line, " ")
+	games := splitted_line[2:]
+	var b, g, r int
+	var num int
+	for i := 0; i < len(games)-1; i += 2 {
+		if games[i+1][0] == 'b' {
+			num, _ = strconv.Atoi(games[i])
+			b = max(num, b)
+		}
+		if games[i+1][0] == 'r' {
+			num, _ = strconv.Atoi(games[i])
+			r = max(num, r)
+		}
+		if games[i+1][0] == 'g' {
+			num, _ = strconv.Atoi(games[i])
+			g = max(num, g)
+		}
+	}
+
+	return r * g * b
+}
