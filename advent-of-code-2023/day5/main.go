@@ -72,14 +72,27 @@ func solution() int64 {
 
 	var minLocation int64 = math.MaxInt64
 	setSeeds := make(map[int64]bool)
+	wg2 := sync.WaitGroup{}
+	lock := sync.RWMutex{}
+
 	for i := 0; i < len(seeds); i += 2 {
 		seedRange := [2]int64{seeds[i], seeds[i] + seeds[i+1]}
-		for j := seedRange[0]; j < seedRange[1]; j++ {
-			if !setSeeds[j] {
-				setSeeds[j] = true
+		wg2.Add(1)
+		go func(seedRange [2]int64) {
+			for j := seedRange[0]; j < seedRange[1]; j++ {
+				lock.RLock()
+				if !setSeeds[j] {
+					lock.RUnlock()
+					lock.Lock()
+					setSeeds[j] = true
+					lock.Unlock()
+				}
 			}
-		}
+			wg2.Done()
+		}(seedRange)
 	}
+
+	wg2.Wait()
 
 	wg := sync.WaitGroup{}
 
