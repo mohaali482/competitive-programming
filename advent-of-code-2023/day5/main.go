@@ -7,16 +7,35 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 )
 
-func find(key int64, dictionary map[int64][2]int64) int64 {
+func find(r [][2]int64, dictionary map[int64][2]int64) [][2]int64 {
+	ans := make([][2]int64, 0)
 	for k, v := range dictionary {
-		if v[0] <= key && key < v[1] {
-			return k + key - v[0]
+		dest, src, sz := k, v[0], v[1]
+		src_end := src + sz
+		nr := make([][2]int64, 0)
+		for len(r) > 0 {
+			st, ed := r[0][0], r[0][1]
+			r = r[1:]
+
+			before := [2]int64{st, min(ed, src)}
+			inter := [2]int64{max(st, src), min(src_end, ed)}
+			after := [2]int64{max(src_end, st), ed}
+
+			if before[1] > before[0] {
+				nr = append(nr, before)
+			}
+			if inter[1] > inter[0] {
+				ans = append(ans, [2]int64{inter[0] - src + dest, inter[1] - src + dest})
+			}
+			if after[1] > after[0] {
+				nr = append(nr, after)
+			}
 		}
+		r = nr
 	}
-	return key
+	return append(ans, r...)
 }
 
 func solution() int64 {
@@ -70,52 +89,34 @@ func solution() int64 {
 		}
 	}
 
-	var minLocation int64 = math.MaxInt64
-	setSeeds := make(map[int64]bool)
-	wg2 := sync.WaitGroup{}
-	lock := sync.RWMutex{}
+	p2 := make([][2]int64, 0)
 
 	for i := 0; i < len(seeds); i += 2 {
-		seedRange := [2]int64{seeds[i], seeds[i] + seeds[i+1]}
-		wg2.Add(1)
-		go func(seedRange [2]int64) {
-			for j := seedRange[0]; j < seedRange[1]; j++ {
-				lock.RLock()
-				if !setSeeds[j] {
-					lock.RUnlock()
-					lock.Lock()
-					setSeeds[j] = true
-					lock.Unlock()
-				}
+		seedRange := [][2]int64{{seeds[i], seeds[i] + seeds[i+1]}}
+		soil := find(seedRange, seedToSoil)
+		fertilizer := find(soil, soilToFertilizer)
+		water := find(fertilizer, fertilizerToWater)
+		light := find(water, waterToLight)
+		temperature := find(light, lightToTemperature)
+		humidity := find(temperature, temperatureToHumidity)
+		location := find(humidity, humidityToLocation)
+		small := [2]int64{math.MaxInt64, math.MaxInt64}
+
+		for f := range location {
+			if location[f][0] < small[0] {
+				small = location[f]
 			}
-			wg2.Done()
-		}(seedRange)
+		}
+		p2 = append(p2, small)
 	}
-
-	wg2.Wait()
-
-	wg := sync.WaitGroup{}
-
-	for seed := range setSeeds {
-		wg.Add(1)
-		go func(seed int64) {
-			soil := find(seed, seedToSoil)
-			fertilizer := find(soil, soilToFertilizer)
-			water := find(fertilizer, fertilizerToWater)
-			light := find(water, waterToLight)
-			temperature := find(light, lightToTemperature)
-			humidity := find(temperature, temperatureToHumidity)
-			location := find(humidity, humidityToLocation)
-			if location < minLocation {
-				minLocation = location
-			}
-			wg.Done()
-		}(seed)
+	small := [2]int64{math.MaxInt64, math.MaxInt64}
+	for f := range p2 {
+		if p2[f][0] < small[0] {
+			small = p2[f]
+		}
 	}
-
-	wg.Wait()
-
-	return minLocation
+	fmt.Println(small)
+	return 0
 }
 
 func main() {

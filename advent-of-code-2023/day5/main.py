@@ -1,63 +1,72 @@
-def find(key, dictionary):
-    for k, v in dictionary.items():
-        if v[0] <= key < v[1]:
-            return k + key - v[0]
-    
-    return key
+import sys
+D = open(sys.argv[1]).read().strip()
+L = D.split('\n')
 
-def solution():
-    seeds = []
-    seed_to_soil = {}
-    soil_to_fertilizer = {}
-    fertilizer_to_water = {}
-    water_to_light = {}
-    light_to_temperature = {}
-    temperature_to_humidity = {}
-    humidity_to_location = {}
-    windows = {1:seed_to_soil, 2: soil_to_fertilizer, 3:fertilizer_to_water, 4:water_to_light, 5:light_to_temperature, 6:temperature_to_humidity, 7:humidity_to_location,}
-    with open("input.txt", "r") as f:
-        lines = f.readlines()
-        lines = [line.strip() for line in lines]
-        counter = 1
-        seeds = [int(i) for i in lines[0].split()[1:]]
-        win = windows[counter]
-        i = 3
-        while i < len(lines):
-            line = lines[i]
-            if line == "":
-                counter += 1
-                win = windows[counter]
-                i += 2
-            else:
-                x, st, en = map(int, line.split())
-                win[x] = (st, st+en)
-                i += 1
-        
-        min_location = float("inf")
-        set_seeds = set()
-        for i in range(0, len(seeds), 2):
-            seed_range = seeds[i], seeds[i] + seeds[i+1]
-            for i in range(seed_range[0], seed_range[1]):
-                if i not in set_seeds:
-                    set_seeds.add(i)
-        for seed in set_seeds:
-            soil = find(seed, seed_to_soil)
-            fertilizer = find(soil, soil_to_fertilizer)
-            water = find(fertilizer, fertilizer_to_water)
-            light = find(water, water_to_light)
-            temperature = find(light, light_to_temperature)
-            humidity = find(temperature, temperature_to_humidity)
-            location = find(humidity, humidity_to_location)
-            min_location = min(min_location, location)
-        
-        return min_location
+parts = D.split('\n\n')
+seed, *others = parts
+seed = [int(x) for x in seed.split(':')[1].split()]
 
+class Function:
+  def __init__(self, S):
+    lines = S.split('\n')[1:] # throw away name
+    # dst src sz
+    self.tuples: list[tuple[int,int,int]] = [[int(x) for x in line.split()] for line in lines]
+    #print(self.tuples)
+  def apply_one(self, x: int) -> int:
+    for (dst, src, sz) in self.tuples:
+      if src<=x<src+sz:
+        return x+dst-src
+    return x
 
-    
+  # list of [start, end) ranges
+  def apply_range(self, R):
+    A = []
+    for (dest, src, sz) in self.tuples:
+      src_end = src+sz
+      NR = []
+      while R:
+        # [st                                     ed)
+        #          [src       src_end]
+        # [BEFORE ][INTER            ][AFTER        )
+        (st,ed) = R.pop()
+        # (src,sz) might cut (st,ed)
+        before = (st,min(ed,src))
+        inter = (max(st, src), min(src_end, ed))
+        after = (max(src_end, st), ed)
+        if before[1]>before[0]:
+          NR.append(before)
+        if inter[1]>inter[0]:
+          A.append((inter[0]-src+dest, inter[1]-src+dest))
+        if after[1]>after[0]:
+          NR.append(after)
+      R = NR
+    return A+R
 
-            
+Fs = [Function(s) for s in others]
 
+def f(R, o):
+  A = []
+  for line in o:
+    dest,src,sz = [int(x) for x in line.split()]
+    src_end = src+sz
 
+P1 = []
+for x in seed:
+  for f in Fs:
+    x = f.apply_one(x)
+  P1.append(x)
+print(min(P1))
 
-if __name__ == "__main__":
-        print(solution())
+P2 = []
+pairs = list(zip(seed[::2], seed[1::2]))
+for st, sz in pairs:
+  # inclusive on the left, exclusive on the right
+  # e.g. [1,3) = [1,2]
+  # length of [a,b) = b-a
+  # [a,b) + [b,c) = [a,c)
+  R = [(st, st+sz)]
+  for f in Fs:
+    R = f.apply_range(R)
+  #print(len(R))
+  P2.append(min(R)[0])
+print(min(P2))
