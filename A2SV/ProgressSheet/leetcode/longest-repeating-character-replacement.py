@@ -5,7 +5,7 @@ class Solution:
         right = 0
         window = defaultdict(int)
         _max = 0
-        _max_character = ''
+        _max_c = ''
         while right < len(s):
             window[s[right]] += 1
             
