@@ -8,15 +8,20 @@ class Solution:
     def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:
         counter = 0
         ans = 0
+        found = False
         def find(current):
+            nonlocal counter, ans, found
+            if found:
+                return
             if current is None:
                 return
             
             find(current.left)
-            nonlocal counter, ans
             counter += 1
             if counter == k:
                 ans = current.val
+                found = True
+                return
             
             find(current.right)
         find(root)
