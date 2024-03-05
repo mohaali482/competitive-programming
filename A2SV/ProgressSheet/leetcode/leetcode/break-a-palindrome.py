@@ -12,5 +12,6 @@ class Solution:
                 current = palindrome[:i] + 'a' + palindrome[i+1:]
                 if current != current[::-1]:
                     ans = min(ans, current)
+                    break
         
         return ans
